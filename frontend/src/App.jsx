@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
-import Login from './components/Login';
-import Register from './components/Register';
-import UserDashboard from './components/UserDashboard';
-import StaffDashboard from './components/StaffDashboard';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import UserDashboard from './pages/user/UserDashboard';
+import StaffDashboard from './pages/admin/StaffDashboard';
 
 function AppContent() {
   const { user, loading } = useAuth();

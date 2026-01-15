@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 import { Bus, Route, Calendar, BookOpen, LogOut } from 'lucide-react';
 import BusManagement from './BusManagement';
 import RouteManagement from './RouteManagement';
@@ -8,7 +8,14 @@ import BookingManagement from './BookingManagement';
 
 export default function StaffDashboard() {
   const { user, signOut } = useAuth();
-  const [activeTab, setActiveTab] = useState('buses');
+  const [activeTab, setActiveTab] = useState(() => {
+    return localStorage.getItem('staffActiveTab') || 'buses';
+  });
+
+  const handleTabChange = (tab) => {
+    setActiveTab(tab);
+    localStorage.setItem('staffActiveTab', tab);
+  };
 
   const navItems = [
     { id: 'buses', label: 'Bus Info', icon: Bus },
@@ -33,7 +40,7 @@ export default function StaffDashboard() {
               return (
                 <button
                   key={item.id}
-                  onClick={() => setActiveTab(item.id)}
+                  onClick={() => handleTabChange(item.id)}
                   className={`w-full flex items-center px-4 py-3 rounded-lg transition ${
                     activeTab === item.id
                       ? 'bg-blue-600 text-white'
