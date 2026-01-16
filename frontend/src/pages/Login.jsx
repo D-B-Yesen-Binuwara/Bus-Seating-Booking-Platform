@@ -1,8 +1,9 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { Link } from 'react-router-dom';
 import { LogIn } from 'lucide-react';
 
-export default function Login({ onToggle }) {
+export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -83,12 +84,12 @@ export default function Login({ onToggle }) {
         <div className="mt-6 text-center">
           <p className="text-gray-600">
             Don't have an account?{' '}
-            <button
-              onClick={onToggle}
+            <Link
+              to="/register"
               className="text-blue-600 font-semibold hover:text-blue-700 transition"
             >
               Sign Up
-            </button>
+            </Link>
           </p>
         </div>
       </div>

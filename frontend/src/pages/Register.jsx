@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import { Link, useNavigate } from 'react-router-dom';
 import { UserPlus } from 'lucide-react';
 
-export default function Register({ onToggle }) {
+export default function Register() {
+  const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
@@ -30,7 +32,7 @@ export default function Register({ onToggle }) {
       setError(error.message);
     } else {
       setSuccess(true);
-      setTimeout(() => onToggle(), 1500);
+      setTimeout(() => navigate('/login'), 1500);
     }
 
     setLoading(false);
@@ -131,12 +133,12 @@ export default function Register({ onToggle }) {
         <div className="mt-6 text-center">
           <p className="text-gray-600">
             Already have an account?{' '}
-            <button
-              onClick={onToggle}
+            <Link
+              to="/login"
               className="text-green-600 font-semibold hover:text-green-700 transition"
             >
               Sign In
-            </button>
+            </Link>
           </p>
         </div>
       </div>

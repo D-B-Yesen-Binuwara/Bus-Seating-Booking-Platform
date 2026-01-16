@@ -1,11 +1,25 @@
 import { useState, useEffect } from 'react';
 import { Plus, Trash2 } from 'lucide-react';
+import ScheduleFilter from '../../components/ScheduleFilter';
 
 export default function ScheduleManagement() {
   const [schedules, setSchedules] = useState([]);
   const [buses, setBuses] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [filters, setFilters] = useState({ selectedDates: [], selectedRoutes: [] });
+
+  const handleFilterChange = (filterData) => {
+    setFilters(filterData);
+  };
+
+  // Filter schedules based on selected filters
+  const filteredSchedules = schedules.filter((schedule) => {
+    const scheduleDate = new Date(schedule.schedule_date).toISOString().split('T')[0];
+    const dateMatch = filters.selectedDates.length === 0 || filters.selectedDates.includes(scheduleDate);
+    const routeMatch = filters.selectedRoutes.length === 0 || filters.selectedRoutes.includes(`${schedule.source} → ${schedule.destination}`);
+    return dateMatch && routeMatch;
+  });
 
   useEffect(() => {
     fetchSchedules();
@@ -32,6 +46,10 @@ export default function ScheduleManagement() {
   };
 
   const fetchRoutes = async () => {
+    // Fetch routes logic
+    fetchBuses(); // Call fetchBuses to ensure buses are loaded
+    fetchSchedules(); // Call fetchSchedules to ensure schedules are loaded
+    // ...existing code...
     const token = localStorage.getItem('token');
     const response = await fetch('http://localhost:5000/api/routes', {
       headers: { 'Authorization': `Bearer ${token}` }
@@ -78,52 +96,58 @@ export default function ScheduleManagement() {
   };
 
   return (
-    <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Schedule Management</h2>
-        <button
-          onClick={() => setShowModal(true)}
-          className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
-        >
-          <Plus className="h-4 w-4 mr-2" />
-          Create Schedule
-        </button>
+    <div className="flex">
+      <div className="flex-1">
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-2xl font-bold">Schedule Management</h2>
+          <button
+            onClick={() => setShowModal(true)}
+            className="flex items-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Create Schedule
+          </button>
+        </div>
+
+        <div className="bg-white rounded-lg shadow overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Available</th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {filteredSchedules.map((schedule) => (
+                <tr key={schedule.id}>
+                  <td className="px-6 py-4 whitespace-nowrap">{schedule.bus_name}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{schedule.source} → {schedule.destination}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{new Date(schedule.schedule_date).toLocaleDateString()}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{schedule.departure_time}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">₹{schedule.price}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">{schedule.available_seats}</td>
+                  <td className="px-6 py-4 whitespace-nowrap">
+                    <button
+                      onClick={() => handleDelete(schedule.id)}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Available</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {schedules.map((schedule) => (
-              <tr key={schedule.id}>
-                <td className="px-6 py-4 whitespace-nowrap">{schedule.bus_name}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{schedule.source} → {schedule.destination}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{new Date(schedule.schedule_date).toLocaleDateString()}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{schedule.departure_time}</td>
-                <td className="px-6 py-4 whitespace-nowrap">₹{schedule.price}</td>
-                <td className="px-6 py-4 whitespace-nowrap">{schedule.available_seats}</td>
-                <td className="px-6 py-4 whitespace-nowrap">
-                  <button
-                    onClick={() => handleDelete(schedule.id)}
-                    className="text-red-600 hover:text-red-800"
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+      <div className="ml-6 w-80">
+        <ScheduleFilter routes={routes} onFilterChange={handleFilterChange} />
       </div>
 
       {showModal && (
