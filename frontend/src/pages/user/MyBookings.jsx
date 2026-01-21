@@ -33,7 +33,7 @@ export default function MyBookings() {
                 </p>
               </div>
               <div className="text-right">
-                <p className="text-xl font-bold text-green-600">₹{booking.total_amount}</p>
+                <p className="text-xl font-bold text-green-600">Rs. {booking.total_amount}</p>
                 <span className={`inline-block px-3 py-1 rounded-full text-sm ${
                   booking.booking_status === 'confirmed' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
                 }`}>

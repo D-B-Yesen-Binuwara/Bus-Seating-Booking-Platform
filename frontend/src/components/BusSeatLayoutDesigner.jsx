@@ -36,39 +36,39 @@ export default function BusSeatLayoutDesigner({ bus, layoutOnly, onSave, onCance
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 overflow-y-auto">
-      <div className="bg-white rounded-lg p-6 max-w-4xl w-full my-8">
-        <h3 className="text-2xl font-bold mb-4">
+      <div className="bg-white rounded-lg p-4 max-w-lg w-full my-8 max-h-[90vh] overflow-y-auto">
+        <h3 className="text-xl font-bold mb-3">
           {layoutOnly ? 'Edit Seat Layout' : bus ? 'Edit Bus' : 'Add New Bus'}
         </h3>
         
         <form onSubmit={handleSubmit}>
           {!layoutOnly && (
-            <div className="grid grid-cols-2 gap-4 mb-6">
+            <div className="grid grid-cols-2 gap-3 mb-4">
               <input
                 value={busNumber}
                 onChange={(e) => setBusNumber(e.target.value)}
                 placeholder="Bus Number"
                 required
-                className="px-4 py-2 border rounded-lg"
+                className="px-3 py-1.5 border rounded-lg text-sm"
               />
               <input
                 value={busName}
                 onChange={(e) => setBusName(e.target.value)}
                 placeholder="Bus Name"
                 required
-                className="px-4 py-2 border rounded-lg"
+                className="px-3 py-1.5 border rounded-lg text-sm"
               />
               <input
                 value={busIndex}
                 onChange={(e) => setBusIndex(e.target.value)}
                 placeholder="Bus Index (Optional)"
-                className="px-4 py-2 border rounded-lg"
+                className="px-3 py-1.5 border rounded-lg text-sm"
               />
               <select
                 value={busType}
                 onChange={(e) => setBusType(e.target.value)}
                 required
-                className="px-4 py-2 border rounded-lg"
+                className="px-3 py-1.5 border rounded-lg text-sm"
               >
                 <option value="">Select Bus Type</option>
                 <option value="A/C">A/C</option>
@@ -81,27 +81,27 @@ export default function BusSeatLayoutDesigner({ bus, layoutOnly, onSave, onCance
                   onChange={(e) => setCustomType(e.target.value)}
                   placeholder="Enter Custom Bus Type"
                   required
-                  className="px-4 py-2 border rounded-lg col-span-2"
+                  className="px-3 py-1.5 border rounded-lg col-span-2 text-sm"
                 />
               )}
             </div>
           )}
 
-          <div className="mb-4">
-            <p className="text-sm text-gray-600 mb-2">Click to toggle seats (Green = Active, Gray = Empty space)</p>
+          <div className="mb-3">
+            <p className="text-xs text-gray-600 mb-1">Click to toggle seats (Green = Active, Gray = Empty)</p>
             <p className="text-sm font-semibold">Total Seats: {seatLayout.filter(s => s).length}</p>
           </div>
 
-          <div className="border-2 border-gray-300 rounded-lg p-4 bg-gray-50 mb-6">
-            <div className="text-center mb-4 font-bold text-gray-700 bg-gray-200 py-2 rounded">DRIVER</div>
+          <div className="border-2 border-gray-300 rounded-lg p-3 bg-gray-50 mb-4">
+            <div className="text-center mb-2 font-bold text-gray-700 bg-gray-200 py-1.5 rounded text-sm">DRIVER</div>
             
-            <div className="grid grid-cols-7 gap-2">
+            <div className="grid grid-cols-7 gap-y-1 gap-x-0.5">
               {seatLayout.map((isActive, index) => (
                 <button
                   key={index}
                   type="button"
                   onClick={() => toggleSeat(index)}
-                  className={`h-12 rounded font-semibold transition ${
+                  className={`h-9 w-11 rounded text-xs font-semibold transition ${
                     isActive 
                       ? 'bg-green-500 text-white hover:bg-green-600' 
                       : 'bg-gray-200 text-gray-400 hover:bg-gray-300'
@@ -117,14 +117,14 @@ export default function BusSeatLayoutDesigner({ bus, layoutOnly, onSave, onCance
             <button
               type="submit"
               disabled={seatLayout.filter(s => s).length === 0}
-              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50"
+              className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 text-sm"
             >
               {layoutOnly ? 'Save Layout' : bus ? 'Update Bus' : 'Save Bus'}
             </button>
             <button
               type="button"
               onClick={onCancel}
-              className="flex-1 bg-gray-300 py-2 rounded-lg hover:bg-gray-400"
+              className="flex-1 bg-gray-300 py-2 rounded-lg hover:bg-gray-400 text-sm"
             >
               Cancel
             </button>

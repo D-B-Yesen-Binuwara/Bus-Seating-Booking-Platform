@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Trash2 } from 'lucide-react';
+import { Plus, Trash2, Edit } from 'lucide-react';
 import ScheduleFilter from '../../components/ScheduleFilter';
 
 export default function ScheduleManagement() {
@@ -7,6 +7,10 @@ export default function ScheduleManagement() {
   const [buses, setBuses] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [showModal, setShowModal] = useState(false);
+  const [showSeatModal, setShowSeatModal] = useState(false);
+  const [selectedSchedule, setSelectedSchedule] = useState(null);
+  const [reservedSeats, setReservedSeats] = useState([]);
+  const [reserveMode, setReserveMode] = useState(false);
   const [filters, setFilters] = useState({ selectedDates: [], selectedRoutes: [] });
 
   const handleFilterChange = (filterData) => {
@@ -85,6 +89,43 @@ export default function ScheduleManagement() {
     fetchSchedules();
   };
 
+  const handleEdit = (id) => {
+    alert('Edit functionality to be implemented');
+  };
+
+  const handleViewSeats = (schedule) => {
+    setSelectedSchedule(schedule);
+    setReservedSeats(JSON.parse(schedule.reserved_seats || '[]'));
+    setReserveMode(false);
+    setShowSeatModal(true);
+  };
+
+  const toggleSeatReservation = (seatIndex) => {
+    if (!reserveMode) return;
+    setReservedSeats(prev => 
+      prev.includes(seatIndex) 
+        ? prev.filter(s => s !== seatIndex)
+        : [...prev, seatIndex]
+    );
+  };
+
+  const saveReservations = async () => {
+    const token = localStorage.getItem('token');
+    const response = await fetch(`http://localhost:5000/api/schedules/${selectedSchedule.id}/reserve`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
+      },
+      body: JSON.stringify({ reserved_seats: reservedSeats })
+    });
+    if (response.ok) {
+      alert('Reservations saved successfully');
+      setShowSeatModal(false);
+      fetchSchedules();
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!confirm('Delete this schedule?')) return;
     const token = localStorage.getItem('token');
@@ -113,31 +154,50 @@ export default function ScheduleManagement() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Available</th>
-                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus No.</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Time</th>
+                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Price</th>
+                <th className="px-3 py-3 text-center text-xs font-medium text-gray-500 uppercase">Available</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
               {filteredSchedules.map((schedule) => (
                 <tr key={schedule.id}>
-                  <td className="px-6 py-4 whitespace-nowrap">{schedule.bus_name}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{schedule.source} → {schedule.destination}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{new Date(schedule.schedule_date).toLocaleDateString()}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{schedule.departure_time}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">₹{schedule.price}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">{schedule.available_seats}</td>
-                  <td className="px-6 py-4 whitespace-nowrap">
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">{schedule.bus_name}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">{schedule.bus_number}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">{schedule.source} → {schedule.destination}</td>
+                  <td className="px-3 py-3 whitespace-nowrap text-sm">{new Date(schedule.schedule_date).toLocaleDateString()}</td>
+                  <td className="px-3 py-3 whitespace-nowrap text-sm">{schedule.departure_time}</td>
+                  <td className="px-3 py-3 whitespace-nowrap text-sm">Rs. {schedule.price}</td>
+                  <td className="px-3 py-3 whitespace-nowrap text-sm text-center">
                     <button
-                      onClick={() => handleDelete(schedule.id)}
-                      className="text-red-600 hover:text-red-800"
+                      onClick={() => handleViewSeats(schedule)}
+                      className="text-blue-600 hover:text-blue-800 underline"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      {schedule.available_seats}
                     </button>
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap">
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => handleEdit(schedule.id)}
+                        className="text-blue-600 hover:text-blue-800"
+                        title="Edit"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(schedule.id)}
+                        className="text-red-600 hover:text-red-800"
+                        title="Delete"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -146,7 +206,7 @@ export default function ScheduleManagement() {
         </div>
       </div>
 
-      <div className="ml-6 w-80">
+      <div className="ml-6 w-64">
         <ScheduleFilter routes={routes} onFilterChange={handleFilterChange} />
       </div>
 
@@ -174,6 +234,90 @@ export default function ScheduleManagement() {
                 <button type="button" onClick={() => setShowModal(false)} className="flex-1 bg-gray-300 py-2 rounded-lg hover:bg-gray-400">Cancel</button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {showSeatModal && selectedSchedule && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg p-4 max-w-lg w-full max-h-[90vh] overflow-y-auto">
+            <h3 className="text-xl font-bold mb-3">Seat Management - {selectedSchedule.bus_name}</h3>
+            <p className="text-sm text-gray-600 mb-3">{selectedSchedule.source} → {selectedSchedule.destination} | {new Date(selectedSchedule.schedule_date).toLocaleDateString()}</p>
+            
+            <div className="mb-3">
+              <div className="flex gap-4 text-xs mb-2">
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 bg-green-500 rounded"></div>
+                  <span>Available</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 bg-red-500 rounded"></div>
+                  <span>Booked</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  <div className="w-6 h-6 bg-orange-500 rounded"></div>
+                  <span>Reserved</span>
+                </div>
+              </div>
+              <button
+                onClick={() => setReserveMode(!reserveMode)}
+                className={`px-4 py-2 rounded-lg text-sm ${
+                  reserveMode ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-700'
+                }`}
+              >
+                {reserveMode ? 'Stop Reserving' : 'Reserve Seats'}
+              </button>
+            </div>
+
+            <div className="border-2 border-gray-300 rounded-lg p-3 bg-gray-50 mb-4">
+              <div className="text-center mb-2 font-bold text-gray-700 bg-gray-200 py-1.5 rounded text-sm">DRIVER</div>
+              
+              <div className="grid grid-cols-7 gap-y-1 gap-x-0.5">
+                {Array.from({ length: 70 }).map((_, index) => {
+                  const seatLayout = JSON.parse(selectedSchedule.seat_layout || '[]');
+                  const bookedSeats = JSON.parse(selectedSchedule.booked_seats || '[]');
+                  const reservedSeatsData = JSON.parse(selectedSchedule.reserved_seats || '[]');
+                  const isSeatActive = seatLayout.includes(index);
+                  const isBooked = bookedSeats.includes(index.toString());
+                  const isReserved = reservedSeats.includes(index);
+                  
+                  if (!isSeatActive) {
+                    return <div key={index} className="h-9 w-11"></div>;
+                  }
+                  
+                  return (
+                    <button
+                      key={index}
+                      type="button"
+                      onClick={() => toggleSeatReservation(index)}
+                      disabled={isBooked}
+                      className={`h-9 w-11 rounded text-xs font-semibold transition ${
+                        isBooked ? 'bg-red-500 text-white cursor-not-allowed' :
+                        isReserved ? 'bg-orange-500 text-white' :
+                        'bg-green-500 text-white hover:bg-green-600'
+                      }`}
+                    >
+                      {index + 1}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={saveReservations}
+                className="flex-1 bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 text-sm"
+              >
+                Save Reservations
+              </button>
+              <button
+                onClick={() => setShowSeatModal(false)}
+                className="flex-1 bg-gray-300 py-2 rounded-lg hover:bg-gray-400 text-sm"
+              >
+                Close
+              </button>
+            </div>
           </div>
         </div>
       )}

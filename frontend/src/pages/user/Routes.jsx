@@ -121,13 +121,22 @@ export default function Routes() {
                             <p className="text-sm text-gray-600">{schedule.bus_name} • {schedule.available_seats} seats available</p>
                           </div>
                           <div className="text-right">
-                            <p className="text-xl font-bold text-blue-600">₹{schedule.price}</p>
-                            <button
-                              onClick={() => handleBooking(schedule)}
-                              className="mt-1 px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
-                            >
-                              Book
-                            </button>
+                            <p className="text-xl font-bold text-blue-600">Rs. {schedule.price}</p>
+                            {schedule.available_seats > 0 ? (
+                              <button
+                                onClick={() => handleBooking(schedule)}
+                                className="mt-1 px-4 py-1 bg-blue-600 text-white text-sm rounded hover:bg-blue-700"
+                              >
+                                Book
+                              </button>
+                            ) : (
+                              <button
+                                disabled
+                                className="mt-1 px-4 py-1 bg-gray-400 text-white text-sm rounded cursor-not-allowed"
+                              >
+                                All Booked
+                              </button>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -147,7 +156,7 @@ export default function Routes() {
             <div className="mb-4">
               <p className="text-lg">{selectedSchedule.source} → {selectedSchedule.destination}</p>
               <p className="text-gray-600">{selectedSchedule.bus_name} • {new Date(selectedSchedule.schedule_date).toLocaleDateString()} at {selectedSchedule.departure_time}</p>
-              <p className="text-gray-600">Price per seat: ₹{selectedSchedule.price}</p>
+              <p className="text-gray-600">Price per seat: Rs. {selectedSchedule.price}</p>
             </div>
             
             <SeatLayout
@@ -155,13 +164,14 @@ export default function Routes() {
               bookedSeats={JSON.parse(selectedSchedule.booked_seats || '[]')}
               selectedSeats={selectedSeats}
               onSeatSelect={setSelectedSeats}
+              selectedSchedule={selectedSchedule}
             />
             
             <div className="mt-4 flex justify-between items-center">
               <div>
                 <p className="font-semibold">Selected Seats: {selectedSeats.map(s => s + 1).join(', ') || 'None'}</p>
                 <p className="text-xl font-bold text-blue-600">
-                  Total: ₹{selectedSchedule.price * selectedSeats.length}
+                  Total: Rs. {selectedSchedule.price * selectedSeats.length}
                 </p>
               </div>
               <div className="flex gap-2">

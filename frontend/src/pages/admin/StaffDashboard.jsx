@@ -54,14 +54,14 @@ export default function StaffDashboard() {
                 <Link
                   key={item.id}
                   to={item.path}
-                  className={`w-full flex items-center px-3 py-2 rounded-lg transition text-sm ${
+                  className={`w-full flex items-center ${sidebarCollapsed ? 'justify-center px-1' : 'px-3'} py-2 rounded-lg transition text-sm ${
                     isActive(item.path)
                       ? 'bg-blue-600 text-white'
                       : 'text-gray-700 hover:bg-gray-100'
                   }`}
                   title={sidebarCollapsed ? item.label : ''}
                 >
-                  <Icon className="h-4 w-4 mr-2" />
+                  <Icon className={`${sidebarCollapsed ? 'h-6 w-6' : 'h-4 w-4 mr-2'}`} />
                   {!sidebarCollapsed && item.label}
                 </Link>
               );
@@ -83,7 +83,7 @@ export default function StaffDashboard() {
             }`}
             title={sidebarCollapsed ? 'Logout' : ''}
           >
-            <LogOut className="h-4 w-4" />
+            <LogOut className={`${sidebarCollapsed ? 'h-6 w-6' : 'h-4 w-4'}`} />
             {!sidebarCollapsed && <span className="ml-2">Logout</span>}
           </button>
         </div>

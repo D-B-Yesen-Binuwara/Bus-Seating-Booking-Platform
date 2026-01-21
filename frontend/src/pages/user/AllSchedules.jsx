@@ -115,13 +115,22 @@ export default function AllSchedules() {
                     </p>
                   </div>
                   <div className="text-right">
-                    <p className="text-2xl font-bold text-blue-600">₹{schedule.price}</p>
-                    <button
-                      onClick={() => handleBooking(schedule)}
-                      className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                    >
-                      Book Now
-                    </button>
+                    <p className="text-2xl font-bold text-blue-600">Rs. {schedule.price}</p>
+                    {schedule.available_seats > 0 ? (
+                      <button
+                        onClick={() => handleBooking(schedule)}
+                        className="mt-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                      >
+                        Book Now
+                      </button>
+                    ) : (
+                      <button
+                        disabled
+                        className="mt-2 px-4 py-2 bg-gray-400 text-white rounded-lg cursor-not-allowed"
+                      >
+                        All Booked
+                      </button>
+                    )}
                   </div>
                 </div>
               </div>
@@ -140,7 +149,7 @@ export default function AllSchedules() {
               <div className="mb-4">
                 <p className="text-lg">{selectedSchedule.source} → {selectedSchedule.destination}</p>
                 <p className="text-gray-600">{selectedSchedule.bus_name} • {new Date(selectedSchedule.schedule_date).toLocaleDateString()} at {selectedSchedule.departure_time}</p>
-                <p className="text-gray-600">Price per seat: ₹{selectedSchedule.price}</p>
+                <p className="text-gray-600">Price per seat: Rs. {selectedSchedule.price}</p>
               </div>
               
               <SeatLayout
@@ -148,13 +157,14 @@ export default function AllSchedules() {
                 bookedSeats={JSON.parse(selectedSchedule.booked_seats || '[]')}
                 selectedSeats={selectedSeats}
                 onSeatSelect={setSelectedSeats}
+                selectedSchedule={selectedSchedule}
               />
               
               <div className="mt-4 flex justify-between items-center">
                 <div>
                   <p className="font-semibold">Selected Seats: {selectedSeats.map(s => s + 1).join(', ') || 'None'}</p>
                   <p className="text-xl font-bold text-blue-600">
-                    Total: ₹{selectedSchedule.price * selectedSeats.length}
+                    Total: Rs. {selectedSchedule.price * selectedSeats.length}
                   </p>
                 </div>
                 <div className="flex gap-2">

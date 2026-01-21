@@ -9,3 +9,6 @@ ALTER TABLE schedules
   DROP COLUMN IF EXISTS arrival_time,
   MODIFY COLUMN departure_time TIME NOT NULL,
   ADD COLUMN IF NOT EXISTS schedule_date DATE NOT NULL AFTER departure_time;
+
+-- Add reserved_seats column to schedules table
+ALTER TABLE schedules ADD COLUMN IF NOT EXISTS reserved_seats TEXT DEFAULT '[]';

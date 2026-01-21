@@ -40,6 +40,7 @@ CREATE TABLE IF NOT EXISTS schedules (
   price DECIMAL(10, 2) NOT NULL,
   available_seats INT NOT NULL,
   booked_seats TEXT,
+  reserved_seats TEXT,
   status ENUM('active', 'cancelled', 'completed') DEFAULT 'active',
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (bus_id) REFERENCES buses(id),
