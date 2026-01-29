@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { ChevronDown, ChevronUp, Calendar } from 'lucide-react';
 import SeatLayout from '../../components/SeatLayout';
 
@@ -45,7 +46,7 @@ export default function Routes() {
 
   const confirmBooking = async () => {
     if (selectedSeats.length === 0) {
-      alert('Please select at least one seat');
+      toast.error('Please select at least one seat');
       return;
     }
 
@@ -67,15 +68,15 @@ export default function Routes() {
       });
 
       if (response.ok) {
-        alert('Booking successful!');
+        toast.success('Booking successful!');
         setShowBookingModal(false);
         fetchSchedules();
       } else {
         const data = await response.json();
-        alert(data.error || 'Booking failed');
+        toast.error(data.error || 'Booking failed');
       }
     } catch (error) {
-      alert('Error creating booking');
+      toast.error('Error creating booking');
     }
   };
 

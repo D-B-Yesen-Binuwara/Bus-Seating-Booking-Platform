@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { Plus, Trash2, Edit } from 'lucide-react';
 import ScheduleFilter from '../../components/ScheduleFilter';
 
@@ -84,13 +85,13 @@ export default function ScheduleManagement() {
     });
     
     const result = await response.json();
-    alert(result.message);
+    toast.success(result.message || 'Operation completed');
     setShowModal(false);
     fetchSchedules();
   };
 
   const handleEdit = (id) => {
-    alert('Edit functionality to be implemented');
+    toast('Edit functionality to be implemented');
   };
 
   const handleViewSeats = (schedule) => {
@@ -120,7 +121,7 @@ export default function ScheduleManagement() {
       body: JSON.stringify({ reserved_seats: reservedSeats })
     });
     if (response.ok) {
-      alert('Reservations saved successfully');
+      toast.success('Reservations saved successfully');
       setShowSeatModal(false);
       fetchSchedules();
     }
@@ -262,7 +263,7 @@ export default function ScheduleManagement() {
               <button
                 onClick={() => setReserveMode(!reserveMode)}
                 className={`px-4 py-2 rounded-lg text-sm ${
-                  reserveMode ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-700'
+                  reserveMode ? 'bg-red-600 text-white' : 'bg-blue-400 text-white'
                 }`}
               >
                 {reserveMode ? 'Stop Reserving' : 'Reserve Seats'}

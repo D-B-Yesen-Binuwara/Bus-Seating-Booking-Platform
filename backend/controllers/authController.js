@@ -43,7 +43,45 @@ export const login = async (req, res) => {
     
     res.json({
       token,
-      user: { id: user.id, name: user.name, email: user.email, role: user.role }
+      user: { id: user.id, name: user.name, email: user.email, phone: user.phone, role: user.role }
+    });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};
+
+export const updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const { name, password, phone } = req.body;
+
+    // Get current user data
+    const [users] = await pool.execute('SELECT * FROM users WHERE id = ?', [userId]);
+    
+    if (users.length === 0) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const user = users[0];
+    let hashedPassword = user.password;
+
+    // Hash new password if provided
+    if (password) {
+      hashedPassword = await bcrypt.hash(password, 10);
+    }
+
+    // Update user profile (name, password, phone)
+    await pool.execute(
+      'UPDATE users SET name = ?, password = ?, phone = ? WHERE id = ?',
+      [name || user.name, hashedPassword, phone || user.phone, userId]
+    );
+
+    // Get updated user data
+    const [updatedUser] = await pool.execute('SELECT id, name, email, phone, role FROM users WHERE id = ?', [userId]);
+
+    res.json({
+      message: 'Profile updated successfully',
+      user: updatedUser[0]
     });
   } catch (error) {
     res.status(500).json({ error: error.message });

@@ -12,3 +12,5 @@ ALTER TABLE schedules
 
 -- Add reserved_seats column to schedules table
 ALTER TABLE schedules ADD COLUMN IF NOT EXISTS reserved_seats TEXT DEFAULT '[]';
+-- Add address column to users table
+ALTER TABLE users ADD COLUMN IF NOT EXISTS address VARCHAR(255) DEFAULT NULL AFTER phone;
