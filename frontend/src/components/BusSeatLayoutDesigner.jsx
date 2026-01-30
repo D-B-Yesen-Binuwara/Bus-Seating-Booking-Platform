@@ -54,7 +54,7 @@ export default function BusSeatLayoutDesigner({ bus, layoutOnly, onSave, onCance
               <input
                 value={busName}
                 onChange={(e) => setBusName(e.target.value)}
-                placeholder="Bus Name"
+                placeholder="Bus Driver"
                 required
                 className="px-3 py-1.5 border rounded-lg text-sm"
               />

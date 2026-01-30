@@ -92,7 +92,7 @@ const MyBookings = () => {
               <div className="flex justify-between">
                 <div>
                   <p className="font-semibold text-lg">{booking.source} → {booking.destination}</p>
-                  <p className="text-sm text-gray-600">Bus: {booking.bus_name}</p>
+                  <p className="text-sm text-gray-600">Bus Driver: {booking.bus_name} (Bus No: {booking.bus_number})</p>
                   <p className="text-sm text-gray-600">Seats: {booking.seat_numbers}</p>
                   <p className="text-sm text-gray-600">
                     Date: {formatDate(booking.schedule_date)} at {booking.departure_time}

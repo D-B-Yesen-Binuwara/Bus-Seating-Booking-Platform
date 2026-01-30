@@ -7,13 +7,13 @@ const router = express.Router();
 router.get('/', authenticateToken, async (req, res) => {
   try {
     const query = req.user.role === 'staff' 
-      ? `SELECT b.*, s.departure_time, s.schedule_date, r.source, r.destination, bus.bus_name, u.name as user_name, u.email, u.phone
+      ? `SELECT b.*, s.departure_time, s.schedule_date, r.source, r.destination, bus.bus_name, bus.bus_number, u.name as user_name, u.email, u.phone
          FROM bookings b
          JOIN schedules s ON b.schedule_id = s.id
          JOIN routes r ON s.route_id = r.id
          JOIN buses bus ON s.bus_id = bus.id
          JOIN users u ON b.user_id = u.id`
-      : `SELECT b.*, s.departure_time, s.schedule_date, r.source, r.destination, bus.bus_name
+      : `SELECT b.*, s.departure_time, s.schedule_date, r.source, r.destination, bus.bus_name, bus.bus_number
          FROM bookings b
          JOIN schedules s ON b.schedule_id = s.id
          JOIN routes r ON s.route_id = r.id

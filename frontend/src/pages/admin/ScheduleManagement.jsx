@@ -196,7 +196,7 @@ export default function ScheduleManagement() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus Driver</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus No.</th>
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>

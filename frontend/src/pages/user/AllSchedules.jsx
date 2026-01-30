@@ -134,7 +134,7 @@ export default function AllSchedules() {
                       <span>{formatDate(schedule.schedule_date)} at {schedule.departure_time}</span>
                     </div>
                     <p className="mt-2 text-sm text-gray-500">
-                      Bus: {schedule.bus_name} ({schedule.bus_number})
+                      Bus Driver: {schedule.bus_name} ({schedule.bus_number})
                     </p>
                     <p className="text-sm text-gray-500">
                       Available Seats: {schedule.available_seats}

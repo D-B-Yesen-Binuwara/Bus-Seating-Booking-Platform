@@ -152,7 +152,6 @@ export default function BookingManagement() {
               <tr>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">ID</th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">User</th>
-                <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus Name</th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Bus No.</th>
                 <th className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase">Route</th>
                 <th className="px-2 py-3 text-left text-xs font-medium text-gray-500 uppercase">Date</th>
@@ -170,7 +169,6 @@ export default function BookingManagement() {
                     <div className="text-sm">{booking.user_name}</div>
                     <div className="text-xs text-gray-500">{booking.email}</div>
                   </td>
-                  <td className="px-3 py-3 whitespace-nowrap text-sm">{booking.bus_name}</td>
                   <td className="px-3 py-3 whitespace-nowrap text-sm">{booking.bus_number}</td>
                   <td className="px-3 py-3 whitespace-nowrap text-sm">{booking.source} → {booking.destination}</td>
                   <td className="px-2 py-3 whitespace-nowrap text-sm">{formatDate(booking.schedule_date)}</td>
