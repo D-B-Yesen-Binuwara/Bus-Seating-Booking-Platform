@@ -90,7 +90,14 @@ router.patch('/:id/cancel', authenticateToken, isStaff, async (req, res) => {
       throw new Error('Booking not found');
     }
     
-    const seats = booking[0].seat_numbers.split(',');
+    const currentSeats = booking[0].seat_numbers.split(',');
+    const seatsToCancel = req.body.seats_to_cancel || currentSeats; // If no specific seats, cancel all
+    
+    // Validate that seats to cancel are actually in the booking
+    const invalidSeats = seatsToCancel.filter(seat => !currentSeats.includes(seat));
+    if (invalidSeats.length > 0) {
+      throw new Error(`Invalid seats to cancel: ${invalidSeats.join(', ')}`);
+    }
     
     const [schedule] = await connection.execute(
       'SELECT booked_seats FROM schedules WHERE id = ?',
@@ -98,20 +105,34 @@ router.patch('/:id/cancel', authenticateToken, isStaff, async (req, res) => {
     );
     
     const bookedSeats = JSON.parse(schedule[0].booked_seats || '[]');
-    const updatedSeats = bookedSeats.filter(seat => !seats.includes(seat));
+    const updatedBookedSeats = bookedSeats.filter(seat => !seatsToCancel.includes(seat));
     
-    await connection.execute(
-      'UPDATE bookings SET booking_status = ? WHERE id = ?',
-      ['cancelled', req.params.id]
-    );
+    // Update booking: either cancel entirely or update seat_numbers
+    const remainingSeats = currentSeats.filter(seat => !seatsToCancel.includes(seat));
+    if (remainingSeats.length === 0) {
+      // All seats cancelled - mark booking as cancelled
+      await connection.execute(
+        'UPDATE bookings SET booking_status = ? WHERE id = ?',
+        ['cancelled', req.params.id]
+      );
+    } else {
+      // Partial cancellation - update seat_numbers and recalculate amount
+      const seatPrice = booking[0].total_amount / currentSeats.length;
+      const newAmount = seatPrice * remainingSeats.length;
+      await connection.execute(
+        'UPDATE bookings SET seat_numbers = ?, total_amount = ? WHERE id = ?',
+        [remainingSeats.join(','), newAmount, req.params.id]
+      );
+    }
     
+    // Update schedule
     await connection.execute(
       'UPDATE schedules SET available_seats = available_seats + ?, booked_seats = ? WHERE id = ?',
-      [seats.length, JSON.stringify(updatedSeats), booking[0].schedule_id]
+      [seatsToCancel.length, JSON.stringify(updatedBookedSeats), booking[0].schedule_id]
     );
     
     await connection.commit();
-    res.json({ message: 'Booking cancelled successfully' });
+    res.json({ message: 'Booking updated successfully' });
   } catch (error) {
     await connection.rollback();
     res.status(500).json({ error: error.message });

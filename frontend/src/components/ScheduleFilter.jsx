@@ -1,16 +1,41 @@
 import React, { useState, useEffect } from 'react';
 import { X } from 'lucide-react';
 
-const ScheduleFilter = ({ routes, onFilterChange }) => {
+// Utility function to format date consistently as dd/mm/yyyy
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// Utility function to convert date to YYYY-MM-DD for comparison
+const normalizeDate = (dateString) => {
+  // If it's already in YYYY-MM-DD format, return as-is
+  if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return dateString;
+  }
+  // Otherwise, parse and normalize
+  const date = new Date(dateString);
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
+const ScheduleFilter = ({ routes, onFilterChange, title = "Filter Schedules" }) => {
   const [selectedDates, setSelectedDates] = useState([]);
   const [selectedRoutes, setSelectedRoutes] = useState([]);
 
   const handleDateChange = (date) => {
+    // Normalize the selected date to avoid timezone issues
+    const normalizedDate = normalizeDate(date);
     setSelectedDates((prev) => {
-      if (prev.includes(date)) {
-        return prev.filter((d) => d !== date);
+      if (prev.includes(normalizedDate)) {
+        return prev.filter((d) => d !== normalizedDate);
       } else {
-        return [...prev, date];
+        return [...prev, normalizedDate];
       }
     });
   };
@@ -45,7 +70,7 @@ const ScheduleFilter = ({ routes, onFilterChange }) => {
   return (
     <div className="filter-container bg-white rounded-lg shadow p-4">
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Filter Schedules</h3>
+        <h3 className="text-lg font-semibold">{title}</h3>
         {(selectedDates.length > 0 || selectedRoutes.length > 0) && (
           <button
             onClick={clearAllFilters}
@@ -65,7 +90,7 @@ const ScheduleFilter = ({ routes, onFilterChange }) => {
         <div className="flex flex-wrap gap-1">
           {selectedDates.map((date) => (
             <span key={date} className="inline-flex items-center bg-blue-100 text-blue-800 px-2 py-1 rounded text-sm">
-              {date}
+              {formatDate(date)}
               <button
                 onClick={() => removeDate(date)}
                 className="ml-1 text-blue-600 hover:text-blue-800"

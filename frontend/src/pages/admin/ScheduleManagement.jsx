@@ -4,6 +4,31 @@ import { Plus, Trash2, Edit } from 'lucide-react';
 import ScheduleFilter from '../../components/ScheduleFilter';
 import ConfirmDialog from '../../components/ConfirmDialog';
 
+// Utility function to format date consistently as dd/mm/yyyy
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// Utility function to normalize date to YYYY-MM-DD format
+const normalizeDateForComparison = (dateString) => {
+  if (!dateString) return '';
+  // If it's already in YYYY-MM-DD format, return as-is
+  if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return dateString;
+  }
+  // Otherwise, parse and normalize
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function ScheduleManagement() {
   const [schedules, setSchedules] = useState([]);
   const [buses, setBuses] = useState([]);
@@ -22,7 +47,7 @@ export default function ScheduleManagement() {
 
   // Filter schedules based on selected filters
   const filteredSchedules = schedules.filter((schedule) => {
-    const scheduleDate = new Date(schedule.schedule_date).toISOString().split('T')[0];
+    const scheduleDate = normalizeDateForComparison(schedule.schedule_date);
     const dateMatch = filters.selectedDates.length === 0 || filters.selectedDates.includes(scheduleDate);
     const routeMatch = filters.selectedRoutes.length === 0 || filters.selectedRoutes.includes(`${schedule.source} → ${schedule.destination}`);
     return dateMatch && routeMatch;
@@ -187,7 +212,7 @@ export default function ScheduleManagement() {
                   <td className="px-4 py-3 whitespace-nowrap text-sm">{schedule.bus_name}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm">{schedule.bus_number}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm">{schedule.source} → {schedule.destination}</td>
-                  <td className="px-3 py-3 whitespace-nowrap text-sm">{new Date(schedule.schedule_date).toLocaleDateString()}</td>
+                  <td className="px-3 py-3 whitespace-nowrap text-sm">{formatDate(schedule.schedule_date)}</td>
                   <td className="px-3 py-3 whitespace-nowrap text-sm">{schedule.departure_time}</td>
                   <td className="px-3 py-3 whitespace-nowrap text-sm">Rs. {schedule.price}</td>
                   <td className="px-3 py-3 whitespace-nowrap text-sm text-center">
@@ -224,7 +249,7 @@ export default function ScheduleManagement() {
       </div>
 
       <div className="ml-6 w-64">
-        <ScheduleFilter routes={routes} onFilterChange={handleFilterChange} />
+        <ScheduleFilter routes={routes} onFilterChange={handleFilterChange} title="Filter Schedules" />
       </div>
 
       {showModal && (
@@ -259,7 +284,7 @@ export default function ScheduleManagement() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg p-4 max-w-lg w-full max-h-[90vh] overflow-y-auto">
             <h3 className="text-xl font-bold mb-3">Seat Management - {selectedSchedule.bus_name}</h3>
-            <p className="text-sm text-gray-600 mb-3">{selectedSchedule.source} → {selectedSchedule.destination} | {new Date(selectedSchedule.schedule_date).toLocaleDateString()}</p>
+            <p className="text-sm text-gray-600 mb-3">{selectedSchedule.source} → {selectedSchedule.destination} | {formatDate(selectedSchedule.schedule_date)}</p>
             
             <div className="mb-3">
               <div className="flex gap-4 text-xs mb-2">

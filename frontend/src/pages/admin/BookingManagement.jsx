@@ -2,7 +2,32 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { X } from 'lucide-react';
 import ScheduleFilter from '../../components/ScheduleFilter';
-import ConfirmDialog from '../../components/ConfirmDialog';
+import BookingCancelModal from '../../components/BookingCancelModal';
+
+// Utility function to format date consistently as dd/mm/yyyy
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// Utility function to normalize date to YYYY-MM-DD format
+const normalizeDateForComparison = (dateString) => {
+  if (!dateString) return '';
+  // If it's already in YYYY-MM-DD format, return as-is
+  if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return dateString;
+  }
+  // Otherwise, parse and normalize
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
 
 export default function BookingManagement() {
   const [bookings, setBookings] = useState([]);
@@ -11,7 +36,7 @@ export default function BookingManagement() {
   const [routes, setRoutes] = useState([]);
   const [filters, setFilters] = useState({ selectedDates: [], selectedRoutes: [] });
   const [statusFilter, setStatusFilter] = useState('');
-  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, bookingId: null });
+  const [bookingCancelModal, setBookingCancelModal] = useState({ isOpen: false, booking: null });
 
   useEffect(() => {
     fetchBookings();
@@ -55,7 +80,11 @@ export default function BookingManagement() {
     }
 
     if (filters.selectedDates.length > 0) {
-      filtered = filtered.filter(b => filters.selectedDates.includes(b.schedule_date));
+      filtered = filtered.filter(b => {
+        // Normalize the booking date to YYYY-MM-DD format for comparison
+        const bookingDate = normalizeDateForComparison(b.schedule_date);
+        return filters.selectedDates.includes(bookingDate);
+      });
     }
 
     if (filters.selectedRoutes.length > 0) {
@@ -69,28 +98,17 @@ export default function BookingManagement() {
     setFilteredBookings(filtered);
   };
 
-  const handleCancelBooking = async (id) => {
-    setConfirmDialog({ isOpen: true, bookingId: id });
+  const handleCancelBooking = (booking) => {
+    setBookingCancelModal({ isOpen: true, booking });
   };
 
-  const confirmCancelBooking = async () => {
-    const id = confirmDialog.bookingId;
-    const token = localStorage.getItem('token');
-    try {
-      const response = await fetch(`http://localhost:5000/api/bookings/${id}/cancel`, {
-        method: 'PATCH',
-        headers: { 'Authorization': `Bearer ${token}` }
-      });
-      if (response.ok) {
-        toast.success('Booking cancelled successfully');
-      } else {
-        toast.error('Failed to cancel booking');
-      }
-    } catch (error) {
-      toast.error('Error cancelling booking');
-    }
-    setConfirmDialog({ isOpen: false, bookingId: null });
-    fetchBookings();
+  const handleBookingCancelConfirm = (action, selectedSeats) => {
+    setBookingCancelModal({ isOpen: false, booking: null });
+    fetchBookings(); // Refresh the bookings list
+  };
+
+  const handleBookingCancelCancel = () => {
+    setBookingCancelModal({ isOpen: false, booking: null });
   };
 
   return (
@@ -155,7 +173,7 @@ export default function BookingManagement() {
                   <td className="px-3 py-3 whitespace-nowrap text-sm">{booking.bus_name}</td>
                   <td className="px-3 py-3 whitespace-nowrap text-sm">{booking.bus_number}</td>
                   <td className="px-3 py-3 whitespace-nowrap text-sm">{booking.source} → {booking.destination}</td>
-                  <td className="px-2 py-3 whitespace-nowrap text-sm">{new Date(booking.schedule_date).toLocaleDateString()}</td>
+                  <td className="px-2 py-3 whitespace-nowrap text-sm">{formatDate(booking.schedule_date)}</td>
                   <td className="px-2 py-3 whitespace-nowrap text-sm">{booking.seat_numbers}</td>
                   <td className="px-3 py-3 whitespace-nowrap text-sm">Rs. {booking.total_amount}</td>
                   <td className="px-3 py-3 whitespace-nowrap">
@@ -170,7 +188,7 @@ export default function BookingManagement() {
                   <td className="px-3 py-3 whitespace-nowrap">
                     {booking.booking_status === 'confirmed' && (
                       <button
-                        onClick={() => handleCancelBooking(booking.id)}
+                        onClick={() => handleCancelBooking(booking)}
                         className="text-red-600 hover:text-red-800 text-sm"
                       >
                         Cancel
@@ -185,18 +203,14 @@ export default function BookingManagement() {
       </div>
 
       <div className="ml-6 w-64">
-        <ScheduleFilter routes={routes} onFilterChange={handleFilterChange} />
+        <ScheduleFilter routes={routes} onFilterChange={handleFilterChange} title="Filter Schedules" />
       </div>
 
-      <ConfirmDialog
-        isOpen={confirmDialog.isOpen}
-        title="Cancel Booking"
-        message="Are you sure you want to cancel this booking? This action cannot be undone."
-        onConfirm={confirmCancelBooking}
-        onCancel={() => setConfirmDialog({ isOpen: false, bookingId: null })}
-        confirmText="Cancel Booking"
-        cancelText="Keep Booking"
-        isDangerous={true}
+      <BookingCancelModal
+        isOpen={bookingCancelModal.isOpen}
+        booking={bookingCancelModal.booking}
+        onConfirm={handleBookingCancelConfirm}
+        onCancel={handleBookingCancelCancel}
       />
     </div>
   );

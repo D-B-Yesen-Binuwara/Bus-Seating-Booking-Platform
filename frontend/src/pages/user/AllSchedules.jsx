@@ -4,6 +4,31 @@ import { Calendar, MapPin } from 'lucide-react';
 import SeatLayout from '../../components/SeatLayout';
 import ScheduleFilter from '../../components/ScheduleFilter';
 
+// Utility function to format date consistently as dd/mm/yyyy
+const formatDate = (dateString) => {
+  const date = new Date(dateString);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// Utility function to normalize date to YYYY-MM-DD format
+const normalizeDateForComparison = (dateString) => {
+  if (!dateString) return '';
+  // If it's already in YYYY-MM-DD format, return as-is
+  if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+    return dateString;
+  }
+  // Otherwise, parse and normalize
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return '';
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 export default function AllSchedules() {
   const [schedules, setSchedules] = useState([]);
   const [routes, setRoutes] = useState([]);
@@ -41,7 +66,7 @@ export default function AllSchedules() {
 
   // Filter schedules based on selected filters
   const filteredSchedules = schedules.filter((schedule) => {
-    const scheduleDate = new Date(schedule.schedule_date).toISOString().split('T')[0];
+    const scheduleDate = normalizeDateForComparison(schedule.schedule_date);
     const dateMatch = filters.selectedDates.length === 0 || filters.selectedDates.includes(scheduleDate);
     const routeMatch = filters.selectedRoutes.length === 0 || filters.selectedRoutes.includes(`${schedule.source} → ${schedule.destination}`);
     return dateMatch && routeMatch;
@@ -106,7 +131,7 @@ export default function AllSchedules() {
                     </div>
                     <div className="flex items-center space-x-4 text-gray-600">
                       <Calendar className="h-4 w-4" />
-                      <span>{new Date(schedule.schedule_date).toLocaleDateString()} at {schedule.departure_time}</span>
+                      <span>{formatDate(schedule.schedule_date)} at {schedule.departure_time}</span>
                     </div>
                     <p className="mt-2 text-sm text-gray-500">
                       Bus: {schedule.bus_name} ({schedule.bus_number})
@@ -140,7 +165,7 @@ export default function AllSchedules() {
         </div>
 
         <div className="ml-6 w-80">
-          <ScheduleFilter routes={routes} onFilterChange={handleFilterChange} />
+          <ScheduleFilter routes={routes} onFilterChange={handleFilterChange} title="Filter Schedules" />
         </div>
 
         {showBookingModal && selectedSchedule && (
@@ -149,7 +174,7 @@ export default function AllSchedules() {
               <h3 className="text-2xl font-bold mb-4">Select Seats</h3>
               <div className="mb-4">
                 <p className="text-lg">{selectedSchedule.source} → {selectedSchedule.destination}</p>
-                <p className="text-gray-600">{selectedSchedule.bus_name} • {new Date(selectedSchedule.schedule_date).toLocaleDateString()} at {selectedSchedule.departure_time}</p>
+                <p className="text-gray-600">{selectedSchedule.bus_name} • {formatDate(selectedSchedule.schedule_date)} at {selectedSchedule.departure_time}</p>
                 <p className="text-gray-600">Price per seat: Rs. {selectedSchedule.price}</p>
               </div>
               
