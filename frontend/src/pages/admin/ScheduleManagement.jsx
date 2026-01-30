@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { toast } from 'react-hot-toast';
 import { Plus, Trash2, Edit } from 'lucide-react';
 import ScheduleFilter from '../../components/ScheduleFilter';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 export default function ScheduleManagement() {
   const [schedules, setSchedules] = useState([]);
@@ -13,6 +14,7 @@ export default function ScheduleManagement() {
   const [reservedSeats, setReservedSeats] = useState([]);
   const [reserveMode, setReserveMode] = useState(false);
   const [filters, setFilters] = useState({ selectedDates: [], selectedRoutes: [] });
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, scheduleId: null });
 
   const handleFilterChange = (filterData) => {
     setFilters(filterData);
@@ -128,12 +130,26 @@ export default function ScheduleManagement() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Delete this schedule?')) return;
+    setConfirmDialog({ isOpen: true, scheduleId: id });
+  };
+
+  const confirmDeleteSchedule = async () => {
+    const id = confirmDialog.scheduleId;
     const token = localStorage.getItem('token');
-    await fetch(`http://localhost:5000/api/schedules/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    try {
+      const response = await fetch(`http://localhost:5000/api/schedules/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        toast.success('Schedule deleted successfully');
+      } else {
+        toast.error('Failed to delete schedule');
+      }
+    } catch (error) {
+      toast.error('Error deleting schedule');
+    }
+    setConfirmDialog({ isOpen: false, scheduleId: null });
     fetchSchedules();
   };
 
@@ -279,8 +295,10 @@ export default function ScheduleManagement() {
                   const bookedSeats = JSON.parse(selectedSchedule.booked_seats || '[]');
                   const reservedSeatsData = JSON.parse(selectedSchedule.reserved_seats || '[]');
                   const isSeatActive = seatLayout.includes(index);
-                  const isBooked = bookedSeats.includes(index.toString());
-                  const isReserved = reservedSeats.includes(index);
+                  const displayNumber = index + 1;
+                  const displayNumberStr = displayNumber.toString();
+                  const isBooked = bookedSeats.includes(displayNumberStr);
+                  const isReserved = reservedSeats.includes(displayNumber);
                   
                   if (!isSeatActive) {
                     return <div key={index} className="h-9 w-11"></div>;
@@ -298,7 +316,7 @@ export default function ScheduleManagement() {
                         'bg-green-500 text-white hover:bg-green-600'
                       }`}
                     >
-                      {index + 1}
+                      {displayNumber}
                     </button>
                   );
                 })}
@@ -322,6 +340,17 @@ export default function ScheduleManagement() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Delete Schedule"
+        message="Are you sure you want to delete this schedule? This action cannot be undone."
+        onConfirm={confirmDeleteSchedule}
+        onCancel={() => setConfirmDialog({ isOpen: false, scheduleId: null })}
+        confirmText="Delete Schedule"
+        cancelText="Keep Schedule"
+        isDangerous={true}
+      />
     </div>
   );
 }

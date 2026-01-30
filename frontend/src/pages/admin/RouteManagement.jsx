@@ -1,10 +1,13 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 export default function RouteManagement() {
   const [routes, setRoutes] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [editingRoute, setEditingRoute] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, routeId: null });
 
   useEffect(() => {
     fetchRoutes();
@@ -28,19 +31,28 @@ export default function RouteManagement() {
       ? `http://localhost:5000/api/routes/${editingRoute.id}`
       : 'http://localhost:5000/api/routes';
     
-    await fetch(url, {
-      method: editingRoute ? 'PUT' : 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        source: formData.get('source'),
-        destination: formData.get('destination'),
-        distance: parseInt(formData.get('distance')),
-        duration: parseInt(formData.get('duration'))
-      })
-    });
+    try {
+      const response = await fetch(url, {
+        method: editingRoute ? 'PUT' : 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          source: formData.get('source'),
+          destination: formData.get('destination'),
+          distance: parseInt(formData.get('distance')),
+          duration: parseInt(formData.get('duration'))
+        })
+      });
+      if (response.ok) {
+        toast.success(editingRoute ? 'Route updated successfully' : 'Route added successfully');
+      } else {
+        toast.error(editingRoute ? 'Failed to update route' : 'Failed to add route');
+      }
+    } catch (error) {
+      toast.error('Error saving route');
+    }
     
     setShowModal(false);
     setEditingRoute(null);
@@ -48,12 +60,26 @@ export default function RouteManagement() {
   };
 
   const handleDelete = async (id) => {
-    if (!confirm('Are you sure you want to delete this route?')) return;
+    setConfirmDialog({ isOpen: true, routeId: id });
+  };
+
+  const confirmDeleteRoute = async () => {
+    const id = confirmDialog.routeId;
     const token = localStorage.getItem('token');
-    await fetch(`http://localhost:5000/api/routes/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    try {
+      const response = await fetch(`http://localhost:5000/api/routes/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        toast.success('Route deleted successfully');
+      } else {
+        toast.error('Failed to delete route');
+      }
+    } catch (error) {
+      toast.error('Error deleting route');
+    }
+    setConfirmDialog({ isOpen: false, routeId: null });
     fetchRoutes();
   };
 
@@ -130,6 +156,17 @@ export default function RouteManagement() {
           </div>
         </div>
       )}
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Delete Route"
+        message="Are you sure you want to delete this route? This action cannot be undone."
+        onConfirm={confirmDeleteRoute}
+        onCancel={() => setConfirmDialog({ isOpen: false, routeId: null })}
+        confirmText="Delete Route"
+        cancelText="Keep Route"
+        isDangerous={true}
+      />
     </div>
   );
 }

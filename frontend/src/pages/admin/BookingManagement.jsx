@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { X } from 'lucide-react';
 import ScheduleFilter from '../../components/ScheduleFilter';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 export default function BookingManagement() {
   const [bookings, setBookings] = useState([]);
@@ -9,6 +11,7 @@ export default function BookingManagement() {
   const [routes, setRoutes] = useState([]);
   const [filters, setFilters] = useState({ selectedDates: [], selectedRoutes: [] });
   const [statusFilter, setStatusFilter] = useState('');
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, bookingId: null });
 
   useEffect(() => {
     fetchBookings();
@@ -67,12 +70,26 @@ export default function BookingManagement() {
   };
 
   const handleCancelBooking = async (id) => {
-    if (!confirm('Are you sure you want to cancel this booking?')) return;
+    setConfirmDialog({ isOpen: true, bookingId: id });
+  };
+
+  const confirmCancelBooking = async () => {
+    const id = confirmDialog.bookingId;
     const token = localStorage.getItem('token');
-    await fetch(`http://localhost:5000/api/bookings/${id}/cancel`, {
-      method: 'PATCH',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    try {
+      const response = await fetch(`http://localhost:5000/api/bookings/${id}/cancel`, {
+        method: 'PATCH',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        toast.success('Booking cancelled successfully');
+      } else {
+        toast.error('Failed to cancel booking');
+      }
+    } catch (error) {
+      toast.error('Error cancelling booking');
+    }
+    setConfirmDialog({ isOpen: false, bookingId: null });
     fetchBookings();
   };
 
@@ -170,6 +187,17 @@ export default function BookingManagement() {
       <div className="ml-6 w-64">
         <ScheduleFilter routes={routes} onFilterChange={handleFilterChange} />
       </div>
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Cancel Booking"
+        message="Are you sure you want to cancel this booking? This action cannot be undone."
+        onConfirm={confirmCancelBooking}
+        onCancel={() => setConfirmDialog({ isOpen: false, bookingId: null })}
+        confirmText="Cancel Booking"
+        cancelText="Keep Booking"
+        isDangerous={true}
+      />
     </div>
   );
 }

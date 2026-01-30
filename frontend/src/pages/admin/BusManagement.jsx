@@ -1,6 +1,8 @@
 import { useState, useEffect } from 'react';
+import { toast } from 'react-hot-toast';
 import { Plus, Edit, Trash2 } from 'lucide-react';
 import BusSeatLayoutDesigner from '../../components/BusSeatLayoutDesigner';
+import ConfirmDialog from '../../components/ConfirmDialog';
 
 export default function BusManagement() {
   const [buses, setBuses] = useState([]);
@@ -8,6 +10,7 @@ export default function BusManagement() {
   const [editingBus, setEditingBus] = useState(null);
   const [showLayoutModal, setShowLayoutModal] = useState(false);
   const [selectedBus, setSelectedBus] = useState(null);
+  const [confirmDialog, setConfirmDialog] = useState({ isOpen: false, busId: null });
 
   useEffect(() => {
     fetchBuses();
@@ -24,39 +27,71 @@ export default function BusManagement() {
 
   const handleAddBus = async (busData) => {
     const token = localStorage.getItem('token');
-    await fetch('http://localhost:5000/api/buses', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(busData)
-    });
+    try {
+      const response = await fetch('http://localhost:5000/api/buses', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(busData)
+      });
+      if (response.ok) {
+        toast.success('Bus added successfully');
+      } else {
+        toast.error('Failed to add bus');
+      }
+    } catch (error) {
+      toast.error('Error adding bus');
+    }
     setShowAddModal(false);
     fetchBuses();
   };
 
   const handleUpdateBus = async (busData) => {
     const token = localStorage.getItem('token');
-    await fetch(`http://localhost:5000/api/buses/${editingBus.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(busData)
-    });
+    try {
+      const response = await fetch(`http://localhost:5000/api/buses/${editingBus.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(busData)
+      });
+      if (response.ok) {
+        toast.success('Bus updated successfully');
+      } else {
+        toast.error('Failed to update bus');
+      }
+    } catch (error) {
+      toast.error('Error updating bus');
+    }
     setEditingBus(null);
     fetchBuses();
   };
 
   const handleDeleteBus = async (id) => {
-    if (!confirm('Are you sure you want to delete this bus?')) return;
+    setConfirmDialog({ isOpen: true, busId: id });
+  };
+
+  const confirmDeleteBus = async () => {
+    const id = confirmDialog.busId;
     const token = localStorage.getItem('token');
-    await fetch(`http://localhost:5000/api/buses/${id}`, {
-      method: 'DELETE',
-      headers: { 'Authorization': `Bearer ${token}` }
-    });
+    try {
+      const response = await fetch(`http://localhost:5000/api/buses/${id}`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (response.ok) {
+        toast.success('Bus deleted successfully');
+      } else {
+        toast.error('Failed to delete bus');
+      }
+    } catch (error) {
+      toast.error('Error deleting bus');
+    }
+    setConfirmDialog({ isOpen: false, busId: null });
     fetchBuses();
   };
 
@@ -67,18 +102,27 @@ export default function BusManagement() {
 
   const handleSaveLayout = async (layoutData) => {
     const token = localStorage.getItem('token');
-    await fetch(`http://localhost:5000/api/buses/${selectedBus.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        ...selectedBus,
-        seat_layout: layoutData.seat_layout,
-        total_seats: layoutData.total_seats
-      })
-    });
+    try {
+      const response = await fetch(`http://localhost:5000/api/buses/${selectedBus.id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          ...selectedBus,
+          seat_layout: layoutData.seat_layout,
+          total_seats: layoutData.total_seats
+        })
+      });
+      if (response.ok) {
+        toast.success('Seat layout saved successfully');
+      } else {
+        toast.error('Failed to save seat layout');
+      }
+    } catch (error) {
+      toast.error('Error saving seat layout');
+    }
     setShowLayoutModal(false);
     setSelectedBus(null);
     fetchBuses();
@@ -170,6 +214,17 @@ export default function BusManagement() {
           }}
         />
       )}
+
+      <ConfirmDialog
+        isOpen={confirmDialog.isOpen}
+        title="Delete Bus"
+        message="Are you sure you want to delete this bus? This action cannot be undone."
+        onConfirm={confirmDeleteBus}
+        onCancel={() => setConfirmDialog({ isOpen: false, busId: null })}
+        confirmText="Delete Bus"
+        cancelText="Keep Bus"
+        isDangerous={true}
+      />
     </div>
   );
 }

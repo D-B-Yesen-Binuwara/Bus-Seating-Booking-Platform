@@ -39,6 +39,7 @@ export default function MyBookings() {
                 }`}>
                   {booking.booking_status}
                 </span>
+                <p className="text-xs text-gray-500 mt-2">Booking-ID: {booking.id}</p>
               </div>
             </div>
           </div>

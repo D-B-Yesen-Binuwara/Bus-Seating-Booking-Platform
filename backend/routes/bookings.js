@@ -36,6 +36,7 @@ router.post('/', authenticateToken, async (req, res) => {
     await connection.beginTransaction();
     
     const { schedule_id, seat_numbers, total_amount } = req.body;
+    // Convert seat numbers (1-based display numbers) to strings for storage
     const seats = Array.isArray(seat_numbers) ? seat_numbers : seat_numbers.split(',').map(s => s.trim());
     
     const [schedule] = await connection.execute(

@@ -1,12 +1,15 @@
 export default function SeatLayout({ seatLayout, bookedSeats, onSeatSelect, selectedSeats, selectedSchedule }) {
   const toggleSeat = (seatIndex) => {
-    const seatNum = seatIndex.toString();
-    if (bookedSeats.includes(seatNum)) return;
+    // Convert index to display number (1-based)
+    const displayNumber = seatIndex + 1;
+    const displayNumberStr = displayNumber.toString();
     
-    if (selectedSeats.includes(seatIndex)) {
-      onSeatSelect(selectedSeats.filter(s => s !== seatIndex));
+    if (bookedSeats.includes(displayNumberStr)) return;
+    
+    if (selectedSeats.includes(displayNumber)) {
+      onSeatSelect(selectedSeats.filter(s => s !== displayNumber));
     } else {
-      onSeatSelect([...selectedSeats, seatIndex]);
+      onSeatSelect([...selectedSeats, displayNumber]);
     }
   };
 
@@ -37,10 +40,12 @@ export default function SeatLayout({ seatLayout, bookedSeats, onSeatSelect, sele
         <div className="grid grid-cols-7 gap-y-1 gap-x-0.5">
           {Array.from({ length: 70 }).map((_, index) => {
             const isSeatActive = seatLayout.includes(index);
-            const isBooked = bookedSeats.includes(index.toString());
+            const displayNumber = index + 1;
+            const displayNumberStr = displayNumber.toString();
+            const isBooked = bookedSeats.includes(displayNumberStr);
             const reservedSeatsData = JSON.parse(selectedSchedule.reserved_seats || '[]');
-            const isReserved = reservedSeatsData.includes(index);
-            const isSelected = selectedSeats.includes(index);
+            const isReserved = reservedSeatsData.includes(displayNumber);
+            const isSelected = selectedSeats.includes(displayNumber);
             
             if (!isSeatActive) {
               return <div key={index} className="h-9 w-11"></div>;
@@ -59,7 +64,7 @@ export default function SeatLayout({ seatLayout, bookedSeats, onSeatSelect, sele
                   'bg-green-500 text-white hover:bg-green-600'
                 }`}
               >
-                {index + 1}
+                {displayNumber}
               </button>
             );
           })}

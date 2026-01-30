@@ -62,7 +62,7 @@ export default function Routes() {
         },
         body: JSON.stringify({
           schedule_id: selectedSchedule.id,
-          seat_numbers: selectedSeats,
+          seat_numbers: selectedSeats.map(s => s.toString()),
           total_amount: totalAmount
         })
       });

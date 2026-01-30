@@ -6,6 +6,7 @@ import RoutesPage from './Routes';
 import AllSchedules from './AllSchedules';
 import MyBookings from './MyBookings';
 import MyProfile from './MyProfile';
+import Footer from '../../components/Footer';
 
 export default function UserDashboard() {
   const { user, signOut } = useAuth();
@@ -70,7 +71,7 @@ export default function UserDashboard() {
 
       {/* Main Content */}
       <div className="flex-1 overflow-auto">
-        <div className="p-6">
+        <div className="p-6 pb-24">
           <Routes>
             <Route path="/" element={<RoutesPage />} />
             <Route path="/routes" element={<RoutesPage />} />
@@ -79,6 +80,7 @@ export default function UserDashboard() {
             <Route path="/profile" element={<MyProfile />} />
           </Routes>
         </div>
+        {location.pathname !== '/user/profile' && <Footer />}
       </div>
     </div>
   );
