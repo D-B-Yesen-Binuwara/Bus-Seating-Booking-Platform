@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { Calendar, MapPin } from 'lucide-react';
 import SeatLayout from '../../components/SeatLayout';
 import ScheduleFilter from '../../components/ScheduleFilter';
+import useFilteredData from '../../hooks/useFilteredData';
 
 // Utility function to format date consistently as dd/mm/yyyy
 const formatDate = (dateString) => {
@@ -11,22 +12,6 @@ const formatDate = (dateString) => {
   const month = String(date.getMonth() + 1).padStart(2, '0');
   const year = date.getFullYear();
   return `${day}/${month}/${year}`;
-};
-
-// Utility function to normalize date to YYYY-MM-DD format
-const normalizeDateForComparison = (dateString) => {
-  if (!dateString) return '';
-  // If it's already in YYYY-MM-DD format, return as-is
-  if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-    return dateString;
-  }
-  // Otherwise, parse and normalize
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '';
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
 };
 
 export default function AllSchedules() {
@@ -64,12 +49,9 @@ export default function AllSchedules() {
     setFilters(filterData);
   };
 
-  // Filter schedules based on selected filters
-  const filteredSchedules = schedules.filter((schedule) => {
-    const scheduleDate = normalizeDateForComparison(schedule.schedule_date);
-    const dateMatch = filters.selectedDates.length === 0 || filters.selectedDates.includes(scheduleDate);
-    const routeMatch = filters.selectedRoutes.length === 0 || filters.selectedRoutes.includes(`${schedule.source} → ${schedule.destination}`);
-    return dateMatch && routeMatch;
+  // Filter schedules using unified hook
+  const filteredSchedules = useFilteredData(schedules, filters, {
+    routeField: (schedule) => `${schedule.source} → ${schedule.destination}`
   });
 
   const handleBooking = (schedule) => {

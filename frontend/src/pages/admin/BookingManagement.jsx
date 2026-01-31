@@ -3,6 +3,7 @@ import { toast } from 'react-hot-toast';
 import { X } from 'lucide-react';
 import ScheduleFilter from '../../components/ScheduleFilter';
 import BookingCancelModal from '../../components/BookingCancelModal';
+import useFilteredData from '../../hooks/useFilteredData';
 
 // Utility function to format date consistently as dd/mm/yyyy
 const formatDate = (dateString) => {
@@ -13,39 +14,30 @@ const formatDate = (dateString) => {
   return `${day}/${month}/${year}`;
 };
 
-// Utility function to normalize date to YYYY-MM-DD format
-const normalizeDateForComparison = (dateString) => {
-  if (!dateString) return '';
-  // If it's already in YYYY-MM-DD format, return as-is
-  if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-    return dateString;
-  }
-  // Otherwise, parse and normalize
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '';
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 export default function BookingManagement() {
   const [bookings, setBookings] = useState([]);
-  const [filteredBookings, setFilteredBookings] = useState([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [routes, setRoutes] = useState([]);
   const [filters, setFilters] = useState({ selectedDates: [], selectedRoutes: [] });
   const [statusFilter, setStatusFilter] = useState('');
   const [bookingCancelModal, setBookingCancelModal] = useState({ isOpen: false, booking: null });
 
+  // Filter bookings using unified hook
+  const filteredBookings = useFilteredData(bookings, filters, {
+    routeField: (booking) => `${booking.source} → ${booking.destination}`,
+    extraFilters: {
+      search: {
+        term: searchTerm,
+        fields: ['user_name', 'email']
+      },
+      booking_status: statusFilter
+    }
+  });
+
   useEffect(() => {
     fetchBookings();
     fetchRoutes();
   }, []);
-
-  useEffect(() => {
-    filterBookings();
-  }, [bookings, searchTerm, filters, statusFilter]);
 
   const fetchBookings = async () => {
     const token = localStorage.getItem('token');
@@ -67,35 +59,6 @@ export default function BookingManagement() {
 
   const handleFilterChange = (filterData) => {
     setFilters(filterData);
-  };
-
-  const filterBookings = () => {
-    let filtered = bookings;
-
-    if (searchTerm) {
-      filtered = filtered.filter(b => 
-        b.user_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        b.email?.toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    }
-
-    if (filters.selectedDates.length > 0) {
-      filtered = filtered.filter(b => {
-        // Normalize the booking date to YYYY-MM-DD format for comparison
-        const bookingDate = normalizeDateForComparison(b.schedule_date);
-        return filters.selectedDates.includes(bookingDate);
-      });
-    }
-
-    if (filters.selectedRoutes.length > 0) {
-      filtered = filtered.filter(b => filters.selectedRoutes.includes(`${b.source} → ${b.destination}`));
-    }
-
-    if (statusFilter) {
-      filtered = filtered.filter(b => b.booking_status === statusFilter);
-    }
-
-    setFilteredBookings(filtered);
   };
 
   const handleCancelBooking = (booking) => {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import ScheduleFilter from '../../components/ScheduleFilter';
+import useFilteredData from '../../hooks/useFilteredData';
 
 // Utility function to format date consistently as dd/mm/yyyy
 const formatDate = (dateString) => {
@@ -10,36 +11,20 @@ const formatDate = (dateString) => {
   return `${day}/${month}/${year}`;
 };
 
-// Utility function to normalize date to YYYY-MM-DD format
-const normalizeDateForComparison = (dateString) => {
-  if (!dateString) return '';
-  // If it's already in YYYY-MM-DD format, return as-is
-  if (typeof dateString === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
-    return dateString;
-  }
-  // Otherwise, parse and normalize
-  const date = new Date(dateString);
-  if (isNaN(date.getTime())) return '';
-  const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
-  return `${year}-${month}-${day}`;
-};
-
 const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
-  const [filteredBookings, setFilteredBookings] = useState([]);
   const [routes, setRoutes] = useState([]);
   const [filters, setFilters] = useState({ selectedDates: [], selectedRoutes: [] });
+
+  // Filter bookings using unified hook
+  const filteredBookings = useFilteredData(bookings, filters, {
+    routeField: (booking) => `${booking.source} → ${booking.destination}`
+  });
 
   useEffect(() => {
     fetchBookings();
     fetchRoutes();
   }, []);
-
-  useEffect(() => {
-    filterBookings();
-  }, [bookings, filters]);
 
   const fetchBookings = async () => {
     const token = localStorage.getItem('token');
@@ -61,24 +46,6 @@ const MyBookings = () => {
 
   const handleFilterChange = (filterData) => {
     setFilters(filterData);
-  };
-
-  const filterBookings = () => {
-    let filtered = bookings;
-
-    if (filters.selectedDates.length > 0) {
-      filtered = filtered.filter(b => {
-        // Normalize the booking date to YYYY-MM-DD format for comparison
-        const bookingDate = normalizeDateForComparison(b.schedule_date);
-        return filters.selectedDates.includes(bookingDate);
-      });
-    }
-
-    if (filters.selectedRoutes.length > 0) {
-      filtered = filtered.filter(b => filters.selectedRoutes.includes(`${b.source} → ${b.destination}`));
-    }
-
-    setFilteredBookings(filtered);
   };
 
   return (
