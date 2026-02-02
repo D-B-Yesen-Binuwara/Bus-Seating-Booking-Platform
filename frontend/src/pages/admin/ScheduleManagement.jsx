@@ -112,10 +112,11 @@ export default function ScheduleManagement() {
 
   const toggleSeatReservation = (seatIndex) => {
     if (!reserveMode) return;
+    const displayNumber = seatIndex + 1;
     setReservedSeats(prev => 
-      prev.includes(seatIndex) 
-        ? prev.filter(s => s !== seatIndex)
-        : [...prev, seatIndex]
+      prev.includes(displayNumber) 
+        ? prev.filter(s => s !== displayNumber)
+        : [...prev, displayNumber]
     );
   };
 
